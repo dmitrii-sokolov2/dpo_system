@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Система документооборота ДПО</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        h1 { color: #2c3e50; }
+        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background: #f4f4f4; }
+    </style>
+</head>
+<body>
+    <h1>Система документооборота отдела ДПО</h1>
+
+    <h2>Программы</h2>
+    <table>
+        <tr><th>ID</th><th>Название</th><th>Часы</th><th>Форма</th></tr>
+        {% for p in programs %}
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.hours }}</td>
+            <td>{{ p.form }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <h2>Заявления</h2>
+    <table>
+        <tr><th>ID</th><th>Слушатель</th><th>Программа</th><th>Статус</th><th>Дата</th></tr>
+        {% for a in applications %}
+        <tr>
+            <td>{{ a.id }}</td>
+            <td>{{ a.listener_id }}</td>
+            <td>{{ a.program_id }}</td>
+            <td>{{ a.status }}</td>
+            <td>{{ a.created_at }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>

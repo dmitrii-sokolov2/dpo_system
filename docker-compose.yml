@@ -1,0 +1,11 @@
+version: '3.8'
+
+services:
+  dpo_app:
+    build: .
+    container_name: dpo_system
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./dpo.db:/app/dpo.db
+    restart: unless-stopped
