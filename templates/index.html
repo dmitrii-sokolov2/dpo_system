@@ -1,44 +1,56 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Система документооборота ДПО</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        h1 { color: #2c3e50; }
-        table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #f4f4f4; }
-    </style>
-</head>
-<body>
-    <h1>Система документооборота отдела ДПО</h1>
+{% extends "base.html" %}
+{% block title %}Главная - Портал ДПО{% endblock %}
 
-    <h2>Программы</h2>
-    <table>
-        <tr><th>ID</th><th>Название</th><th>Часы</th><th>Форма</th></tr>
-        {% for p in programs %}
-        <tr>
-            <td>{{ p.id }}</td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.hours }}</td>
-            <td>{{ p.form }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+{% block content %}
+<!-- Приветственный блок (Hero) -->
+<div class="hero">
+    <h1>Управление дополнительным профессиональным образованием</h1>
+    <p>Единая информационная система для подачи заявлений на обучение, обработки документов и взаимодействия с профильными системами университета.</p>
+    <a href="/apply" class="btn btn-primary" style="background: #2ecc71;">Подать заявление на обучение</a>
+</div>
 
-    <h2>Заявления</h2>
-    <table>
-        <tr><th>ID</th><th>Слушатель</th><th>Программа</th><th>Статус</th><th>Дата</th></tr>
-        {% for a in applications %}
-        <tr>
-            <td>{{ a.id }}</td>
-            <td>{{ a.listener_id }}</td>
-            <td>{{ a.program_id }}</td>
-            <td>{{ a.status }}</td>
-            <td>{{ a.created_at }}</td>
-        </tr>
-        {% endfor %}
-    </table>
-</body>
-</html>
+<!-- Блок с преимуществами (возможностями) -->
+<div class="features">
+    <div class="feature-card">
+        <div class="feature-icon">📝</div>
+        <h3>Быстрая подача</h3>
+        <p>Заполните электронную форму заявления за пару минут. Никаких очередей и бумажной волокиты.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">⚙️</div>
+        <h3>Автоматизация</h3>
+        <p>Данные автоматически передаются в учебные системы (1С и 3KL) для зачисления на курсы.</p>
+    </div>
+    <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Контроль статуса</h3>
+        <p>Сотрудники ДПО могут оперативно отслеживать обработку заявлений и статус зачисления.</p>
+    </div>
+</div>
+
+<!-- Список программ (вместо уродливой таблицы) -->
+<div class="header" style="margin-top: 40px;">
+    <h1>Доступные программы обучения</h1>
+</div>
+
+<div class="programs-grid">
+    {% for p in programs %}
+    <div class="program-card">
+        <div>
+            <h3>{{ p.name }}</h3>
+            <div class="program-details">
+                <span>Часы: {{ p.hours }}</span>
+                <span>Форма: {{ p.form }}</span>
+                {% if p.code %}<span>Код: {{ p.code }}</span>{% endif %}
+            </div>
+        </div>
+        <a href="/apply" class="btn btn-primary" style="text-align: center;">Записаться</a>
+    </div>
+    {% else %}
+    <div class="card" style="grid-column: 1 / -1; text-align: center;">
+        <p style="color: #7f8c8d;">В данный момент нет доступных программ для записи.</p>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock %}

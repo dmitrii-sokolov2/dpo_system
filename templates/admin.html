@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Админ-панель{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Входящие заявления</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Создать заявление</button>
+</div>
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-title">Всего заявок</div>
+        <div class="stat-value">{{ stats.total }}</div>
+    </div>
+    <div class="stat-card new">
+        <div class="stat-title">Ожидают проверки</div>
+        <div class="stat-value">{{ stats.new }}</div>
+    </div>
+    <div class="stat-card accepted">
+        <div class="stat-title">Принято</div>
+        <div class="stat-value">{{ stats.accepted }}</div>
+    </div>
+    <div class="stat-card rejected">
+        <div class="stat-title">Отклонено</div>
+        <div class="stat-value">{{ stats.rejected }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Слушатель</th>
+                <th>Программа</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for app in applications %}
+            <tr>
+                <td>#{{ app.id }}</td>
+                <td>
+                    <strong>{{ app.listener_name }}</strong><br>
+                    <small style="color:#888;">{{ app.listener.email }}</small>
+                </td>
+                <td>{{ app.program_name }}</td>
+                <td>
+                    {% if app.status == 'new' %}
+                        <span class="status status-new">Новое</span>
+                    {% elif app.status == 'accepted' %}
+                        <span class="status status-accepted">Принято</span>
+                    {% else %}
+                        <span class="status status-rejected">Отклонено</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <form action="/admin/update-status/{{ app.id }}" method="POST" style="display:flex; gap:5px;">
+                        {% if app.status == 'new' %}
+                            <button type="submit" name="new_status" value="accepted" class="btn btn-accept">Принять</button>
+                            <button type="submit" name="new_status" value="rejected" class="btn btn-reject">Отклонить</button>
+                        {% else %}
+                            <span style="color: #999; font-size: 12px;">Обработано</span>
+                        {% endif %}
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- МОДАЛЬНОЕ ОКНО -->
+<div class="modal-overlay" id="applyModal">
+    <div class="modal">
+        <h2>Быстрое создание заявления</h2>
+        <form action="/apply" method="POST">
+            <div class="form-group">
+                <label>Фамилия *</label>
+                <input type="text" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label>Имя *</label>
+                <input type="text" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label>Email *</label>
+                <input type="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label>Программа *</label>
+                <select name="program_id" required>
+                    {% for p in programs %}
+                    <option value="{{ p.id }}">{{ p.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
+                <button type="button" class="btn" style="flex: 1; background: #95a5a6;" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openModal() {
+        document.getElementById('applyModal').style.display = 'flex';
+    }
+    function closeModal() {
+        document.getElementById('applyModal').style.display = 'none';
+    }
+</script>
+{% endblock %}
