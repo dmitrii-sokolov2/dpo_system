@@ -4,8 +4,13 @@
 {% block content %}
 <div class="header">
     <h1>Входящие заявления</h1>
-    <button class="btn btn-primary" onclick="openModal()">+ Создать заявление</button>
+    <div style="display: flex; gap: 10px;">
+        <a href="/admin/export-csv" class="btn" style="background: #2ecc71;">⬇Экспорт в Excel</a>
+        <button class="btn btn-primary" onclick="openModal()">+ Создать заявление</button>
+    </div>
 </div>
+
+<!-- БЛОК СТАТИСТИКИ -->
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-title">Всего заявок</div>
@@ -55,14 +60,15 @@
                     {% endif %}
                 </td>
                 <td>
-                    <form action="/admin/update-status/{{ app.id }}" method="POST" style="display:flex; gap:5px;">
-                        {% if app.status == 'new' %}
-                            <button type="submit" name="new_status" value="accepted" class="btn btn-accept">Принять</button>
-                            <button type="submit" name="new_status" value="rejected" class="btn btn-reject">Отклонить</button>
-                        {% else %}
-                            <span style="color: #999; font-size: 12px;">Обработано</span>
-                        {% endif %}
-                    </form>
+                            <button type="button" class="btn btn-primary" style="background: #3498db; font-size: 12px; padding: 6px 10px;" 
+                            data-id="{{ app.id }}"
+                            data-name="{{ app.listener_name }}"
+                            data-email="{{ app.listener.email }}"
+                            data-program="{{ app.program_name }}"
+                            data-comment="{{ app.comment or 'Нет' }}"
+                            onclick="openDetails(this)">
+                        Детали
+                    </button>
                 </td>
             </tr>
             {% endfor %}
@@ -70,7 +76,7 @@
     </table>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО -->
+<!-- МОДАЛЬНОЕ ОКНО БЫСТРОГО СОЗДАНИЯ -->
 <div class="modal-overlay" id="applyModal">
     <div class="modal">
         <h2>Быстрое создание заявления</h2>
@@ -102,15 +108,62 @@
         </form>
     </div>
 </div>
+
+<!-- НОВОЕ МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ ЗАЯВЛЕНИЯ -->
+<div class="modal-overlay" id="detailsModal">
+    <div class="modal">
+        <h2>Заявление #<span id="det-id"></span></h2>
+        
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #3498db;">
+            <p style="margin-bottom: 10px;"><strong>Слушатель:</strong> <span id="det-name"></span></p>
+            <p style="margin-bottom: 10px;"><strong>Email:</strong> <span id="det-email"></span></p>
+            <p style="margin-bottom: 10px;"><strong>Программа:</strong> <span id="det-program"></span></p>
+            <p style="margin-bottom: 0;"><strong>Комментарий:</strong> <span id="det-comment" style="color: #7f8c8d; font-style: italic;"></span></p>
+        </div>
+
+        <!-- Кнопки смены статуса прямо из окна -->
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <form action="" method="POST" id="det-form-accept" style="flex: 1;">
+                <input type="hidden" name="new_status" value="accepted">
+                <button type="submit" class="btn btn-accept" style="width: 100%;">Принять</button>
+            </form>
+            <form action="" method="POST" id="det-form-reject" style="flex: 1;">
+                <input type="hidden" name="new_status" value="rejected">
+                <button type="submit" class="btn btn-reject" style="width: 100%;">Отклонить</button>
+            </form>
+        </div>
+
+        <button type="button" class="btn" style="width: 100%; margin-top: 10px; background: #95a5a6;" onclick="closeDetails()">Закрыть</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    // Скрипты для окна создания
     function openModal() {
         document.getElementById('applyModal').style.display = 'flex';
     }
     function closeModal() {
         document.getElementById('applyModal').style.display = 'none';
+    }
+    function openDetails(button) {
+        const id = button.getAttribute('data-id');
+        const name = button.getAttribute('data-name');
+        const email = button.getAttribute('data-email');
+        const program = button.getAttribute('data-program');
+        const comment = button.getAttribute('data-comment');
+
+        document.getElementById('det-id').innerText = id;
+        document.getElementById('det-name').innerText = name;
+        document.getElementById('det-email').innerText = email;
+        document.getElementById('det-program').innerText = program;
+        document.getElementById('det-comment').innerText = comment;
+        
+        document.getElementById('det-form-accept').action = '/admin/update-status/' + id;
+        document.getElementById('det-form-reject').action = '/admin/update-status/' + id;
+
+        document.getElementById('detailsModal').style.display = 'flex';
     }
 </script>
 {% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Статус заявления{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Статус заявления</h1>
+    <a href="/" class="btn btn-primary">← На главную</a>
+</div>
+
+<div class="card">
+    <p style="margin-bottom: 20px; color: #555;">Результаты поиска для: <strong>{{ email }}</strong></p>
+
+    {% if applications %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Номер</th>
+                    <th>Программа</th>
+                    <th>Дата подачи</th>
+                    <th>Статус</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>#{{ app.id }}</td>
+                    <td>{{ app.program_name }}</td>
+                    <td>{{ app.created_at }}</td>
+                    <td>
+                        {% if app.status == 'new' %}
+                            <span class="status status-new">В обработке</span>
+                        {% elif app.status == 'accepted' %}
+                            <span class="status status-accepted">Принято (Вы зачислены)</span>
+                        {% else %}
+                            <span class="status status-rejected">Отклонено</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div style="text-align: center; padding: 30px;">
+            <p style="color: #e74c3c; font-size: 16px;">Заявлений с таким email не найдено.</p>
+            <p style="color: #7f8c8d; font-size: 14px; margin-top: 10px;">Проверьте правильность написания или подайте новое заявление.</p>
+            <a href="/apply" class="btn btn-primary" style="margin-top: 20px; display: inline-block;">Подать заявление</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

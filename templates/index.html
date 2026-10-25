@@ -2,27 +2,35 @@
 {% block title %}Главная - Портал ДПО{% endblock %}
 
 {% block content %}
-<!-- Приветственный блок (Hero) -->
+
 <div class="hero">
     <h1>Управление дополнительным профессиональным образованием</h1>
     <p>Единая информационная система для подачи заявлений на обучение, обработки документов и взаимодействия с профильными системами университета.</p>
     <a href="/apply" class="btn btn-primary" style="background: #2ecc71;">Подать заявление на обучение</a>
 </div>
+<div class="card" style="margin-top: 20px; margin-bottom: 30px; background: #fff; border-left: 5px solid #3498db;">
+    <h2 style="margin-bottom: 15px; font-size: 20px; color: #2c3e50;">Узнать статус заявления</h2>
+    <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 14px;">Введите email, который указывали при подаче, чтобы проверить, на какой стадии находится ваша заявка.</p>
+    
+    <form action="/check-status" method="POST" style="display: flex; gap: 10px;">
+        <input type="email" name="email" required placeholder="Ваш email" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+        <button type="submit" class="btn btn-primary">Проверить</button>
+    </form>
+</div>
 
-<!-- Блок с преимуществами (возможностями) -->
 <div class="features">
     <div class="feature-card">
-        <div class="feature-icon">📝</div>
+        <div class="feature-icon"></div>
         <h3>Быстрая подача</h3>
         <p>Заполните электронную форму заявления за пару минут. Никаких очередей и бумажной волокиты.</p>
     </div>
     <div class="feature-card">
-        <div class="feature-icon">⚙️</div>
+        <div class="feature-icon"></div>
         <h3>Автоматизация</h3>
         <p>Данные автоматически передаются в учебные системы (1С и 3KL) для зачисления на курсы.</p>
     </div>
     <div class="feature-card">
-        <div class="feature-icon">📊</div>
+        <div class="feature-icon"></div>
         <h3>Контроль статуса</h3>
         <p>Сотрудники ДПО могут оперативно отслеживать обработку заявлений и статус зачисления.</p>
     </div>

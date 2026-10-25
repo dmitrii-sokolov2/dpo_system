@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Управление программами{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Программы обучения</h1>
+    <button class="btn btn-primary" onclick="openModal()">+ Добавить программу</button>
+</div>
+
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Код (шифр)</th>
+                <th>Часы</th>
+                <th>Форма обучения</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in programs %}
+            <tr>
+                <td>#{{ p.id }}</td>
+                <td><strong>{{ p.name }}</strong></td>
+                <td>{{ p.code or '—' }}</td>
+                <td>{{ p.hours or '—' }}</td>
+                <td>{{ p.form or '—' }}</td>
+                <td>
+                    <form action="/admin/programs/delete/{{ p.id }}" method="POST" onsubmit="return confirm('Вы уверены, что хотите удалить программу «{{ p.name }}»? Все связанные заявления также будут удалены.');">
+                        <button type="submit" class="btn btn-reject" style="padding: 6px 12px; font-size: 13px;">Удалить</button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center; color: #7f8c8d; padding: 30px;">
+                    Пока нет добавленных программ. Нажмите «+ Добавить программу».
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="modal-overlay" id="createModal">
+    <div class="modal">
+        <h2>Новая программа</h2>
+        <form action="/admin/programs/create" method="POST">
+            <div class="form-group">
+                <label>Название программы *</label>
+                <input type="text" name="name" required placeholder="Например: Основы Python">
+            </div>
+            <div class="form-group">
+                <label>Код (шифр)</label>
+                <input type="text" name="code" placeholder="PY-101">
+            </div>
+            <div class="form-group">
+                <label>Количество часов</label>
+                <input type="number" name="hours" placeholder="72">
+            </div>
+            <div class="form-group">
+                <label>Форма обучения</label>
+                <input type="text" name="form" placeholder="Дистанционная">
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
+                <button type="button" class="btn" style="flex: 1; background: #95a5a6;" onclick="closeModal()">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openModal() { document.getElementById('createModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('createModal').style.display = 'none'; }
+</script>
+{% endblock %}

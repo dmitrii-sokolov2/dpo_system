@@ -42,3 +42,11 @@ class Application(Base):
 
     listener = relationship("Listener", back_populates="applications")
     program = relationship("Program", back_populates="applications")
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, index=True, nullable=False)
+    hashed_password = Column(String(255), nullable=False)
+    role = Column(String(20), default="employee") # employee, admin
