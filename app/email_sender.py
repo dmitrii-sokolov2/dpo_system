@@ -1,12 +1,15 @@
+import os
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from dotenv import load_dotenv
 
-# --- НАСТРОЙКИ (ЗАМЕНИТЕ НА СВОИ!) ---
-SMTP_SERVER = "smtp.mail.ru"  
+load_dotenv()
+
+SMTP_SERVER = "smtp.mail.ru" 
 SMTP_PORT = 465                 
-SENDER_EMAIL = "dima2005a99@mail.ru" 
-SENDER_PASSWORD = "SOb5HSL055V2GvhpPw5o"
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
 
 def send_magic_link(to_email: str, magic_token: str):
     link = f"http://127.0.0.1:8000/status/view/{magic_token}"
