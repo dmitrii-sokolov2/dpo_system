@@ -61,7 +61,7 @@
 <div class="form-container">
     <div class="form-header">
         <h1>Запись на программу обучения</h1>
-        <p>Заполните форму ниже. Это займет не более 2 минут.</p>
+        <p></p>
     </div>
 
     <div class="info-note">
@@ -125,11 +125,26 @@
                     </select>
                 </div>
             </div>
-            <div class="form-row full">
+                        <div class="form-row full">
                 <div class="input-group">
                     <label>Комментарий к заявлению</label>
                     <textarea name="comment" rows="3" placeholder="Укажите дополнительные пожелания или вопросы..."></textarea>
                 </div>
+            </div>
+        </div>
+        <div class="form-section" style="background: #f8fafc; border: 1px solid #e0e6ed;">
+            <div style="display: flex; gap: 10px; align-items: flex-start; margin-bottom: 15px;">
+                <input type="checkbox" id="agree1" name="agree1" required style="width: 20px; height: 20px; margin-top: 3px; cursor: pointer;">
+                <label for="agree1" style="font-size: 14px; color: #34495e; cursor: pointer; line-height: 1.4;">
+                    Я согласен с <a href="#" onclick="document.getElementById('termsModal').style.display='flex'; return false;" style="color: #3498db; text-decoration: none; font-weight: 600;">пользовательским соглашением</a>
+                </label>
+            </div>
+            
+            <div style="display: flex; gap: 10px; align-items: flex-start;">
+                <input type="checkbox" id="agree2" name="agree2" required style="width: 20px; height: 20px; margin-top: 3px; cursor: pointer;">
+                <label for="agree2" style="font-size: 14px; color: #34495e; cursor: pointer; line-height: 1.4;">
+                    Я даю согласие на <a href="#" onclick="document.getElementById('privacyModal').style.display='flex'; return false;" style="color: #3498db; text-decoration: none; font-weight: 600;">обработку персональных данных</a>
+                </label>
             </div>
         </div>
 
@@ -137,5 +152,34 @@
             Отправить заявление на обучение
         </button>
     </form>
+</div>
+<div class="modal-overlay" id="termsModal">
+    <div class="modal" style="max-width: 700px;">
+        <h2 style="margin-bottom: 15px; color: #2c3e50;">Пользовательское соглашение</h2>
+        <div style="max-height: 400px; overflow-y: auto; font-size: 14px; color: #555; line-height: 1.6; background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p><strong>1. Общие положения</strong></p>
+            <p>Настоящее Пользовательское соглашение регулирует порядок использования портала отдела дополнительного профессионального образования.</p>
+            <p><strong>2. Предмет соглашения</strong></p>
+            <p>Пользователь обязуется предоставлять достоверные сведения при заполнении электронных форм заявлений и не использовать портал в противоправных целях.</p>
+            <p><strong>3. Ответственность</strong></p>
+            <p>Администрация портала не несет ответственности за перебои в работе, вызванные техническими неполадками на стороне провайдера.</p>
+            <p><em></em></p>
+        </div>
+        <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('termsModal').style.display='none'">Закрыть и продолжить</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="privacyModal">
+    <div class="modal" style="max-width: 700px;">
+        <h2 style="margin-bottom: 15px; color: #2c3e50;">Согласие на обработку персональных данных</h2>
+        <div style="max-height: 400px; overflow-y: auto; font-size: 14px; color: #555; line-height: 1.6; background: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <p>В соответствии с Федеральным законом от 27.07.2006 № 152-ФЗ «О персональных данных», я даю свое согласие на обработку моих персональных данных (ФИО, email, телефон, СНИЛС) оператору — отделу ДПО.</p>
+            <p><strong>Цели обработки:</strong> рассмотрение заявления, заключение договора об оказании образовательных услуг, зачисление на программу обучения и информирование о статусе заявки.</p>
+            <p><strong>Срок действия:</strong> до момента отзыва согласия.</p>
+            <p><em></em></p>
+        </div>
+        <button type="button" class="btn btn-primary" style="width: 100%;" onclick="document.getElementById('privacyModal').style.display='none'">Закрыть и продолжить</button>
+    </div>
+</div>
 </div>
 {% endblock %}

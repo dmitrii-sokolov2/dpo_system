@@ -5,19 +5,18 @@
 <div class="header">
     <h1>Входящие заявления</h1>
     <div style="display: flex; gap: 10px;">
-        <a href="/admin/export-csv" class="btn" style="background: #2ecc71;">⬇Экспорт в Excel</a>
+        <a href="/admin/export-csv" class="btn" style="background: #2ecc71;">⬇️ Экспорт в Excel</a>
         <button class="btn btn-primary" onclick="openModal()">+ Создать заявление</button>
     </div>
 </div>
 
-<!-- БЛОК СТАТИСТИКИ -->
-<div class="stats-grid">
+<div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
     <div class="stat-card">
         <div class="stat-title">Всего заявок</div>
         <div class="stat-value">{{ stats.total }}</div>
     </div>
     <div class="stat-card new">
-        <div class="stat-title">Ожидают проверки</div>
+        <div class="stat-title">Ожидают</div>
         <div class="stat-value">{{ stats.new }}</div>
     </div>
     <div class="stat-card accepted">
@@ -28,6 +27,10 @@
         <div class="stat-title">Отклонено</div>
         <div class="stat-value">{{ stats.rejected }}</div>
     </div>
+    <div class="stat-card" style="border-left-color: #7f8c8d;">
+        <div class="stat-title">Отозвано</div>
+        <div class="stat-value">{{ stats.recalled }}</div>
+    </div>
 </div>
 
 <div class="card">
@@ -36,14 +39,31 @@
             <tr>
                 <th>ID</th>
                 <th>Слушатель</th>
-                <th>Программа</th>
-                <th>Статус</th>
+                <th>
+                    <div>Программа</div>
+                    <select id="filterProgram" style="margin-top: 5px; padding: 4px; font-size: 12px; width: 100%; border-radius: 4px;" onchange="applyFilters()">
+                        <option value="all">Все программы</option>
+                        {% for p in programs %}
+                        <option value="{{ p.name }}">{{ p.name }}</option>
+                        {% endfor %}
+                    </select>
+                </th>
+                <th>
+                    <div>Статус</div>
+                    <select id="filterStatus" style="margin-top: 5px; padding: 4px; font-size: 12px; width: 100%; border-radius: 4px;" onchange="applyFilters()">
+                        <option value="all">Все статусы</option>
+                        <option value="new">Новое</option>
+                        <option value="accepted">Принято</option>
+                        <option value="rejected">Отклонено</option>
+                        <option value="recalled">Отозвано</option>
+                    </select>
+                </th>
                 <th>Действия</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="applicationsTableBody">
             {% for app in applications %}
-            <tr>
+            <tr data-program="{{ app.program_name }}" data-status="{{ app.status }}">
                 <td>#{{ app.id }}</td>
                 <td>
                     <strong>{{ app.listener_name }}</strong><br>
@@ -55,16 +75,19 @@
                         <span class="status status-new">Новое</span>
                     {% elif app.status == 'accepted' %}
                         <span class="status status-accepted">Принято</span>
+                    {% elif app.status == 'recalled' %}
+                        <span class="status" style="background: #e2e3e5; color: #383d41;">Отозвано</span>
                     {% else %}
                         <span class="status status-rejected">Отклонено</span>
                     {% endif %}
                 </td>
                 <td>
-                            <button type="button" class="btn btn-primary" style="background: #3498db; font-size: 12px; padding: 6px 10px;" 
+                    <button type="button" class="btn btn-primary" style="background: #3498db; font-size: 12px; padding: 6px 10px;" 
                             data-id="{{ app.id }}"
                             data-name="{{ app.listener_name }}"
                             data-email="{{ app.listener.email }}"
                             data-program="{{ app.program_name }}"
+                            data-status="{{ app.status }}"
                             data-comment="{{ app.comment or 'Нет' }}"
                             onclick="openDetails(this)">
                         Детали
@@ -76,23 +99,13 @@
     </table>
 </div>
 
-<!-- МОДАЛЬНОЕ ОКНО БЫСТРОГО СОЗДАНИЯ -->
 <div class="modal-overlay" id="applyModal">
     <div class="modal">
         <h2>Быстрое создание заявления</h2>
         <form action="/apply" method="POST">
-            <div class="form-group">
-                <label>Фамилия *</label>
-                <input type="text" name="last_name" required>
-            </div>
-            <div class="form-group">
-                <label>Имя *</label>
-                <input type="text" name="first_name" required>
-            </div>
-            <div class="form-group">
-                <label>Email *</label>
-                <input type="email" name="email" required>
-            </div>
+            <div class="form-group"><label>Фамилия *</label><input type="text" name="last_name" required></div>
+            <div class="form-group"><label>Имя *</label><input type="text" name="first_name" required></div>
+            <div class="form-group"><label>Email *</label><input type="email" name="email" required></div>
             <div class="form-group">
                 <label>Программа *</label>
                 <select name="program_id" required>
@@ -109,7 +122,6 @@
     </div>
 </div>
 
-<!-- НОВОЕ МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ ЗАЯВЛЕНИЯ -->
 <div class="modal-overlay" id="detailsModal">
     <div class="modal">
         <h2>Заявление #<span id="det-id"></span></h2>
@@ -120,8 +132,6 @@
             <p style="margin-bottom: 10px;"><strong>Программа:</strong> <span id="det-program"></span></p>
             <p style="margin-bottom: 0;"><strong>Комментарий:</strong> <span id="det-comment" style="color: #7f8c8d; font-style: italic;"></span></p>
         </div>
-
-        <!-- Кнопки смены статуса прямо из окна -->
         <div style="display: flex; gap: 10px; margin-top: 20px;">
             <form action="" method="POST" id="det-form-accept" style="flex: 1;">
                 <input type="hidden" name="new_status" value="accepted">
@@ -132,26 +142,27 @@
                 <button type="submit" class="btn btn-reject" style="width: 100%;">Отклонить</button>
             </form>
         </div>
+            <form action="" method="POST" id="det-form-recall" style="margin-top: 10px;">
+            <input type="hidden" name="new_status" value="recalled">
+            <button type="submit" class="btn" style="width: 100%; background: #95a5a6;" id="btn-recall">Отозвать заявление</button>
+        </form>
 
-        <button type="button" class="btn" style="width: 100%; margin-top: 10px; background: #95a5a6;" onclick="closeDetails()">Закрыть</button>
+        <button type="button" class="btn" style="width: 100%; margin-top: 10px; background: #bdc3c7; color: #333;" onclick="closeDetails()">Закрыть</button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Скрипты для окна создания
-    function openModal() {
-        document.getElementById('applyModal').style.display = 'flex';
-    }
-    function closeModal() {
-        document.getElementById('applyModal').style.display = 'none';
-    }
+    function openModal() { document.getElementById('applyModal').style.display = 'flex'; }
+    function closeModal() { document.getElementById('applyModal').style.display = 'none'; }
+
     function openDetails(button) {
         const id = button.getAttribute('data-id');
         const name = button.getAttribute('data-name');
         const email = button.getAttribute('data-email');
         const program = button.getAttribute('data-program');
+        const status = button.getAttribute('data-status');
         const comment = button.getAttribute('data-comment');
 
         document.getElementById('det-id').innerText = id;
@@ -162,8 +173,36 @@
         
         document.getElementById('det-form-accept').action = '/admin/update-status/' + id;
         document.getElementById('det-form-reject').action = '/admin/update-status/' + id;
+        document.getElementById('det-form-recall').action = '/admin/update-status/' + id;
+
+        if (status === 'recalled' || status === 'rejected') {
+            document.getElementById('btn-recall').style.display = 'none';
+        } else {
+            document.getElementById('btn-recall').style.display = 'block';
+        }
 
         document.getElementById('detailsModal').style.display = 'flex';
+    }
+    function closeDetails() { document.getElementById('detailsModal').style.display = 'none'; }
+
+    function applyFilters() {
+        const programFilter = document.getElementById('filterProgram').value;
+        const statusFilter = document.getElementById('filterStatus').value;
+        const rows = document.querySelectorAll('#applicationsTableBody tr');
+
+        rows.forEach(row => {
+            const rowProgram = row.getAttribute('data-program');
+            const rowStatus = row.getAttribute('data-status');
+            
+            const matchProgram = (programFilter === 'all' || rowProgram === programFilter);
+            const matchStatus = (statusFilter === 'all' || rowStatus === statusFilter);
+
+            if (matchProgram && matchStatus) {
+                row.style.display = ''; 
+            } else {
+                row.style.display = 'none';
+            }
+        });
     }
 </script>
 {% endblock %}

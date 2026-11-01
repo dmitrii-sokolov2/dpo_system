@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Письмо отправлено{% endblock %}
+
+{% block content %}
+<div class="header">
+    <h1>Проверьте вашу почту</h1>
+</div>
+
+<div class="card" style="max-width: 600px; margin: 0 auto; text-align: center; padding: 40px;">
+    <div style="font-size: 50px; margin-bottom: 20px;">✉️</div>
+    <h2 style="color: #2c3e50; margin-bottom: 15px;">Ссылка для входа отправлена!</h2>
+    <p style="color: #7f8c8d; font-size: 15px; line-height: 1.6;">
+        Мы отправили письмо на адрес <strong>{{ email }}</strong>.<br>
+        Пожалуйста, перейдите по ссылке из письма, чтобы увидеть статус вашего заявления.
+    </p>
+    <p style="color: #95a5a6; font-size: 13px; margin-top: 20px;">
+        (Если письма нет, проверьте папку «Спам»).
+    </p>
+    <a href="/" class="btn btn-primary" style="margin-top: 20px;">Вернуться на главную</a>
+</div>
+{% endblock %}

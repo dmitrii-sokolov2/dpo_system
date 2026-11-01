@@ -7,6 +7,9 @@ from datetime import timedelta
 from . import auth
 from . import models, schemas, crud
 from .database import engine, get_db
+import uuid
+from .email_sender import send_magic_link
+from fastapi.staticfiles import StaticFiles
 
 models.Base.metadata.create_all(bind=engine)
 
@@ -23,6 +26,7 @@ if not db.query(models.User).filter(models.User.username == "admin").first():
 db.close()
 
 app = FastAPI(title="Система документооборота ДПО")
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/login", response_class=HTMLResponse)
@@ -140,7 +144,8 @@ def admin_panel(
     new_apps = sum(1 for a in applications if a.status == 'new')
     accepted_apps = sum(1 for a in applications if a.status == 'accepted')
     rejected_apps = sum(1 for a in applications if a.status == 'rejected')
-    
+    recalled_apps = sum(1 for a in applications if a.status == 'recalled')
+
     for app in applications:
         app.listener_name = f"{app.listener.last_name} {app.listener.first_name}"
         app.program_name = app.program.name
@@ -155,7 +160,8 @@ def admin_panel(
                 "total": total_apps,
                 "new": new_apps,
                 "accepted": accepted_apps,
-                "rejected": rejected_apps
+                "rejected": rejected_apps,
+                "recalled": recalled_apps
             }
         }
     )
@@ -164,20 +170,35 @@ def admin_panel(
 def check_status(request: Request, email: str = Form(...), db: Session = Depends(get_db)):
     listener = db.query(models.Listener).filter(models.Listener.email == email).first()
     
-    applications = []
     if listener:
+        token = str(uuid.uuid4())
         applications = db.query(models.Application).filter(models.Application.listener_id == listener.id).all()
         for app in applications:
-            app.program_name = app.program.name
+            app.magic_token = token
+        db.commit()
+        send_magic_link(email, token)
 
+        return templates.TemplateResponse(
+            request=request, 
+            name="email_sent.html", 
+            context={"email": email, "active_page": "home"}
+        )
+    
+    return templates.TemplateResponse(
+        request=request, 
+        name="email_sent.html", 
+        context={"email": email, "active_page": "home"}
+    )
+
+@app.get("/status/view/{token}", response_class=HTMLResponse)
+def view_status_by_token(request: Request, token: str, db: Session = Depends(get_db)):
+    applications = db.query(models.Application).filter(models.Application.magic_token == token).all()
+    for app in applications:
+        app.program_name = app.program.name
     return templates.TemplateResponse(
         request=request, 
         name="status_result.html",
-        context={
-            "email": email, 
-            "applications": applications, 
-            "active_page": "home"
-        }
+        context={"applications": applications, "active_page": "home"}
     )
 
 @app.post("/admin/update-status/{app_id}")

@@ -2,63 +2,150 @@
 {% block title %}Главная - Портал ДПО{% endblock %}
 
 {% block content %}
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
 
-<div class="hero">
-    <h1>Управление дополнительным профессиональным образованием</h1>
-    <p>Единая информационная система для подачи заявлений на обучение, обработки документов и взаимодействия с профильными системами университета.</p>
-    <a href="/apply" class="btn btn-primary" style="background: #2ecc71;">Подать заявление на обучение</a>
-</div>
-<div class="card" style="margin-top: 20px; margin-bottom: 30px; background: #fff; border-left: 5px solid #3498db;">
-    <h2 style="margin-bottom: 15px; font-size: 20px; color: #2c3e50;">Узнать статус заявления</h2>
-    <p style="color: #7f8c8d; margin-bottom: 15px; font-size: 14px;">Введите email, который указывали при подаче, чтобы проверить, на какой стадии находится ваша заявка.</p>
+    body {
+        scroll-snap-type: y mandatory;
+    }
+
+    .hero-section, .catalog-section {
+        scroll-snap-align: start; 
+        height: 100vh; 
+        overflow-y: auto; 
+    }
+    .catalog-section {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding-top: 40px;
+    }
+
+    .hero-section {
+        min-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        position: relative;
+    }
     
-    <form action="/check-status" method="POST" style="display: flex; gap: 10px;">
-        <input type="email" name="email" required placeholder="Ваш email" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
-        <button type="submit" class="btn btn-primary">Проверить</button>
-    </form>
-</div>
+    .hero-section h1 { font-size: 60px; color: #2c3e50; margin-bottom: 20px; font-weight: bold; }
+    .hero-section p { font-size: 18px; color: #7f8c8d; max-width: 800px; line-height: 1.6; margin-bottom: 40px; }
 
-<div class="features">
-    <div class="feature-card">
-        <div class="feature-icon"></div>
-        <h3>Быстрая подача</h3>
-        <p>Заполните электронную форму заявления за пару минут. Никаких очередей и бумажной волокиты.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon"></div>
-        <h3>Автоматизация</h3>
-        <p>Данные автоматически передаются в учебные системы (1С и 3KL) для зачисления на курсы.</p>
-    </div>
-    <div class="feature-card">
-        <div class="feature-icon"></div>
-        <h3>Контроль статуса</h3>
-        <p>Сотрудники ДПО могут оперативно отслеживать обработку заявлений и статус зачисления.</p>
-    </div>
-</div>
+    .action-cards { display: flex; gap: 30px; justify-content: center; width: 100%; max-width: 900px; }
+    .action-card {
+        background: white; padding: 40px 30px; border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        flex: 1; text-decoration: none; transition: transform 0.3s, box-shadow 0.3s; border: 2px solid transparent;
+    }
+    .action-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(52, 152, 219, 0.15); border-color: #3498db; }
+    .action-card .icon { font-size: 50px; margin-bottom: 20px; }
+    .action-card h3 { color: #2c3e50; font-size: 22px; margin-bottom: 10px; }
+    .action-card p { font-size: 14px; color: #7f8c8d; margin-bottom: 0; }
 
-<!-- Список программ (вместо уродливой таблицы) -->
-<div class="header" style="margin-top: 40px;">
-    <h1>Доступные программы обучения</h1>
-</div>
+    /* Стрелка вниз */
+    .scroll-down {
+        position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+        font-size: 40px; color: #bdc3c7; cursor: pointer; transition: color 0.3s; animation: bounce 2s infinite;
+    }
+    .scroll-down:hover { color: #3498db; }
+    @keyframes bounce { 0%, 20%, 50%, 80%, 100% { transform: translateY(0) translateX(-50%); } 40% { transform: translateY(-20px) translateX(-50%); } 60% { transform: translateY(-10px) translateX(-50%); } }
 
-<div class="programs-grid">
-    {% for p in programs %}
-    <div class="program-card">
-        <div>
-            <h3>{{ p.name }}</h3>
-            <div class="program-details">
-                <span>Часы: {{ p.hours }}</span>
-                <span>Форма: {{ p.form }}</span>
-                {% if p.code %}<span>Код: {{ p.code }}</span>{% endif %}
-            </div>
+    /* Секция каталога */
+    .catalog-section { padding-top: 50px; padding-bottom: 50px; }
+    .catalog-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 2px solid #e0e6ed; padding-bottom: 15px; }
+    .catalog-header h2 { font-size: 28px; color: #2c3e50; }
+    
+    .scroll-up { font-size: 16px; color: #3498db; text-decoration: none; font-weight: bold; display: flex; align-items: center; gap: 5px; cursor: pointer; }
+    .scroll-up:hover { color: #2980b9; }
+
+    .programs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; }
+    .program-card { background: white; border-radius: 8px; padding: 25px; border-left: 5px solid #3498db; box-shadow: 0 4px 15px rgba(0,0,0,0.05); display: flex; flex-direction: column; justify-content: space-between; transition: 0.3s; }
+    .program-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); transform: translateY(-3px); }
+    .program-card h3 { color: #2c3e50; font-size: 18px; margin-bottom: 15px; }
+    .program-details { font-size: 14px; color: #7f8c8d; margin-bottom: 20px; }
+    .program-details span { display: inline-block; background: #ecf0f1; padding: 5px 10px; border-radius: 4px; margin-right: 5px; margin-bottom: 5px; font-weight: 500; }
+</style>
+
+
+
+<div class="hero-section">
+    <img src="/static/images/logo.png" alt="Логотип" style="height: 250px; width: auto; margin-bottom: 20px;">
+    <h1>Управление дополнительного образования <br>и профессионального обучения</h1>
+    <p>Официальный портал отдела ДПО. Здесь вы можете подать электронное заявление на обучение по программам повышения квалификации и профессиональной переподготовки, а также отслеживать статус ранее поданных заявок с помощью безопасной системы проверки.</p>
+    
+    <div class="action-cards">
+        <a href="/apply" class="action-card">
+            <div class="icon"></div>
+            <h3>Подать заявление</h3>
+            <p>Заполнить электронную форму на выбранную программу</p>
+        </a>
+
+        <div class="action-card" onclick="document.getElementById('statusModal').style.display='flex'">
+            <div class="icon"></div>
+            <h3>Проверить статус</h3>
+            <p>Узнать стадию обработки вашей заявки</p>
         </div>
-        <a href="/apply" class="btn btn-primary" style="text-align: center;">Записаться</a>
     </div>
-    {% else %}
-    <div class="card" style="grid-column: 1 / -1; text-align: center;">
-        <p style="color: #7f8c8d;">В данный момент нет доступных программ для записи.</p>
+
+    <div class="scroll-down" 
+         title="Перейти к каталогу программ" 
+         style="cursor: pointer;" 
+         onclick="document.getElementById('catalog').scrollIntoView({behavior: 'smooth'});">
+        ↓
     </div>
-    {% endfor %}
 </div>
 
+<div id="catalog" class="catalog-section">
+    <div class="catalog-header">
+        <h2>Каталог программ обучения</h2>
+        <div class="scroll-up" 
+             title="Вернуться на главную страницу" 
+             style="cursor: pointer;" 
+             onclick="window.scrollTo({top: 0, behavior: 'smooth'});">
+            ↑ Наверх
+        </div>
+    </div>
+
+    <div class="programs-grid">
+        {% for p in programs %}
+        <div class="program-card">
+            <div>
+                <h3>{{ p.name }}</h3>
+                <div class="program-details">
+                    <span>Часы: {{ p.hours }}</span>
+                    <span>Форма: {{ p.form }}</span>
+                    {% if p.code %}<span>Код: {{ p.code }}</span>{% endif %}
+                </div>
+            </div>
+            <a href="/apply" class="btn btn-primary">Выбрать программу</a>
+        </div>
+        {% else %}
+        <div class="card" style="grid-column: 1 / -1; text-align: center;">
+            <p style="color: #7f8c8d;">В данный момент нет доступных программ.</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="modal-overlay" id="statusModal">
+    <div class="modal">
+        <h2 style="margin-bottom: 10px;">Проверка статуса</h2>
+        <p style="color: #7f8c8d; font-size: 14px; margin-bottom: 20px;">Введите email, который указывали при подаче. Мы отправим на него безопасную ссылку для входа.</p>
+        
+        <form action="/check-status" method="POST">
+            <div class="form-group">
+                <label>Ваш Email</label>
+                <input type="email" name="email" required placeholder="example@mail.ru">
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Отправить ссылку</button>
+                <button type="button" class="btn" style="flex: 1; background: #95a5a6;" onclick="document.getElementById('statusModal').style.display='none'">Отмена</button>
+            </div>
+        </form>
+    </div>
+</div>
 {% endblock %}

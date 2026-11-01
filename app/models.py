@@ -39,6 +39,7 @@ class Application(Base):
     status = Column(String(50), default="new")
     created_at = Column(Date)
     comment = Column(Text)
+    magic_token = Column(String(36), unique=True, nullable=True)
 
     listener = relationship("Listener", back_populates="applications")
     program = relationship("Program", back_populates="applications")
