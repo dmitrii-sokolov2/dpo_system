@@ -2,96 +2,164 @@
 {% block title %}Админ-панель{% endblock %}
 
 {% block content %}
-<div class="header">
-    <h1>Входящие заявления</h1>
-    <div style="display: flex; gap: 10px;">
-        <a href="/admin/export-csv" class="btn" style="background: #2ecc71;">⬇️ Экспорт в Excel</a>
-        <button class="btn btn-primary" onclick="openModal()">+ Создать заявление</button>
+<style>
+    :root {
+        --bg: #f7f5f1; --ink: #182b3a; --ink-soft: #5c6b7a;
+        --blue: #1d4ed8; --teal: #0d9488;
+        --grad: linear-gradient(120deg, #1d4ed8, #0d9488);
+        --card: #fff; --line: #e6e1d8;
+        --serif: Georgia, 'Times New Roman', serif;
+        --sans: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --shadow: 0 10px 40px rgba(24,43,58,.10);
+        --shadow-lg: 0 24px 70px rgba(24,43,58,.16);
+        --radius: 18px;
+    }
+
+    .content-area { padding: 40px 4vw 80px !important; background: var(--bg); font-family: var(--sans); color: var(--ink); }
+
+    .page-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 28px; }
+    .page-head h1 { font-family: var(--serif); font-size: 32px; margin: 0; }
+    .page-head h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .head-actions { display: flex; gap: 12px; }
+
+    .btn {
+        display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+        padding: 13px 22px; border: none; border-radius: 12px; cursor: pointer;
+        font-family: var(--sans); font-weight: 700; font-size: 14px; text-decoration: none;
+        transition: transform .2s, box-shadow .3s, filter .3s;
+    }
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+    .btn-grad { background: var(--grad); color: #fff; box-shadow: 0 8px 20px rgba(29,78,216,.28); }
+    .btn-ghost { background: #fff; color: var(--ink); border: 1.5px solid var(--line); }
+    .btn-ghost:hover { border-color: var(--teal); }
+
+    /* Вкладки-чипы */
+    .tabs-container { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 26px; }
+    .tab-btn {
+        padding: 10px 18px; border-radius: 100px; text-decoration: none;
+        font-size: 14px; font-weight: 700; color: var(--ink-soft);
+        background: #fff; border: 1.5px solid var(--line); cursor: pointer;
+        transition: all .25s;
+    }
+    .tab-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .tab-btn .cnt { opacity: .7; font-weight: 600; margin-left: 4px; }
+    .tab-btn.active { background: var(--grad); color: #fff; border-color: transparent; box-shadow: 0 8px 20px rgba(29,78,216,.28); }
+    .tab-btn.active .cnt { opacity: .9; }
+
+    /* Таблица */
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+    .admin-table { width: 100%; border-collapse: collapse; }
+    .admin-table th {
+        text-align: left; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+        color: var(--ink-soft); padding: 18px 22px; background: var(--bg); border-bottom: 1px solid var(--line);
+    }
+    .admin-table td { padding: 18px 22px; border-bottom: 1px solid var(--line); font-size: 14.5px; vertical-align: middle; }
+    .admin-table tbody tr { transition: background .2s; }
+    .admin-table tbody tr:hover { background: rgba(29,78,216,.035); }
+    .admin-table tbody tr:last-child td { border-bottom: none; }
+    .td-id { font-family: var(--serif); font-weight: 700; color: var(--ink-soft); }
+    .td-mail { font-size: 13px; color: var(--ink-soft); }
+
+    /* Бейджи статусов */
+    .badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 6px 14px; border-radius: 100px; font-size: 12.5px; font-weight: 700;
+    }
+    .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .badge-new       { background: rgba(29,78,216,.10);  color: var(--blue); }
+    .badge-pending   { background: rgba(230,126,34,.12); color: #c2611a; }
+    .badge-accepted  { background: rgba(13,148,136,.12); color: var(--teal); }
+    .badge-rejected  { background: rgba(220,38,38,.10);  color: #c02626; }
+    .badge-recalled  { background: rgba(92,107,122,.12); color: var(--ink-soft); }
+
+    .btn-sm { padding: 9px 16px; font-size: 13px; border-radius: 10px; }
+
+    .empty-state { text-align: center; color: var(--ink-soft); padding: 50px 20px; font-size: 15px; }
+    .empty-state .big { font-size: 40px; display: block; margin-bottom: 10px; }
+
+    /* Модалка быстрого создания */
+    .modal-overlay {
+        display: none; position: fixed; inset: 0; z-index: 100;
+        background: rgba(24,43,58,.45); backdrop-filter: blur(6px);
+        align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay .modal {
+        width: 100%; max-width: 460px; background: #fff; border-radius: 20px; padding: 36px;
+        box-shadow: var(--shadow-lg); animation: pop .3s ease;
+        border-top: 5px solid; border-image: linear-gradient(90deg, var(--blue), var(--teal)) 1;
+    }
+    @keyframes pop { from { transform: scale(.95) translateY(12px); opacity: 0; } }
+    .modal h2 { font-family: var(--serif); margin: 0 0 22px; font-size: 24px; }
+    .modal .form-group { margin-bottom: 16px; }
+    .modal label { display: block; font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-soft); margin-bottom: 8px; }
+    .modal input, .modal select {
+        width: 100%; padding: 13px 16px; font-size: 15px; font-family: var(--sans);
+        background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; color: var(--ink);
+        transition: border-color .3s, box-shadow .3s;
+    }
+    .modal input:focus, .modal select:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 4px rgba(29,78,216,.14); }
+</style>
+
+<div class="page-head">
+    <h1>Входящие <span>заявления</span></h1>
+    <div class="head-actions">
+        <a href="/admin/export-csv" class="btn btn-ghost">⬇️ Экспорт в Excel</a>
+        <button class="btn btn-grad" onclick="openModal()">+ Создать заявление</button>
     </div>
 </div>
 
-<div class="stats-grid" style="grid-template-columns: repeat(5, 1fr);">
-    <div class="stat-card">
-        <div class="stat-title">Всего заявок</div>
-        <div class="stat-value">{{ stats.total }}</div>
-    </div>
-    <div class="stat-card new">
-        <div class="stat-title">Ожидают</div>
-        <div class="stat-value">{{ stats.new }}</div>
-    </div>
-    <div class="stat-card accepted">
-        <div class="stat-title">Принято</div>
-        <div class="stat-value">{{ stats.accepted }}</div>
-    </div>
-    <div class="stat-card rejected">
-        <div class="stat-title">Отклонено</div>
-        <div class="stat-value">{{ stats.rejected }}</div>
-    </div>
-    <div class="stat-card" style="border-left-color: #7f8c8d;">
-        <div class="stat-title">Отозвано</div>
-        <div class="stat-value">{{ stats.recalled }}</div>
-    </div>
+<!-- Вкладки для фильтрации -->
+<div class="tabs-container">
+    <a href="#" class="tab-btn active" data-filter="all">Все <span class="cnt">{{ stats.total }}</span></a>
+    <a href="#" class="tab-btn" data-filter="new">Новые <span class="cnt">{{ stats.new }}</span></a>
+    <a href="#" class="tab-btn" data-filter="pending_payment">Ожидают оплаты <span class="cnt">{{ stats.pending }}</span></a>
+    <a href="#" class="tab-btn" data-filter="accepted">Зачислены <span class="cnt">{{ stats.accepted }}</span></a>
+    <a href="#" class="tab-btn" data-filter="rejected">Отклонены <span class="cnt">{{ stats.rejected }}</span></a>
+    <a href="#" class="tab-btn" data-filter="recalled">Отозваны <span class="cnt">{{ stats.recalled }}</span></a>
 </div>
 
 <div class="card">
-    <table>
+    <table class="admin-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Слушатель</th>
-                <th>
-                    <div>Программа</div>
-                    <select id="filterProgram" style="margin-top: 5px; padding: 4px; font-size: 12px; width: 100%; border-radius: 4px;" onchange="applyFilters()">
-                        <option value="all">Все программы</option>
-                        {% for p in programs %}
-                        <option value="{{ p.name }}">{{ p.name }}</option>
-                        {% endfor %}
-                    </select>
-                </th>
-                <th>
-                    <div>Статус</div>
-                    <select id="filterStatus" style="margin-top: 5px; padding: 4px; font-size: 12px; width: 100%; border-radius: 4px;" onchange="applyFilters()">
-                        <option value="all">Все статусы</option>
-                        <option value="new">Новое</option>
-                        <option value="accepted">Принято</option>
-                        <option value="rejected">Отклонено</option>
-                        <option value="recalled">Отозвано</option>
-                    </select>
-                </th>
-                <th>Действия</th>
+                <th>Программа</th>
+                <th>Статус</th>
+                <th></th>
             </tr>
         </thead>
         <tbody id="applicationsTableBody">
             {% for app in applications %}
-            <tr data-program="{{ app.program_name }}" data-status="{{ app.status }}">
-                <td>#{{ app.id }}</td>
+            <!-- Добавлен data-status для фильтрации -->
+            <tr data-status="{{ app.status }}">
+                <td class="td-id">#{{ app.id }}</td>
                 <td>
                     <strong>{{ app.listener_name }}</strong><br>
-                    <small style="color:#888;">{{ app.listener.email }}</small>
+                    <span class="td-mail">{{ app.listener.email }}</span>
                 </td>
                 <td>{{ app.program_name }}</td>
                 <td>
                     {% if app.status == 'new' %}
-                        <span class="status status-new">Новое</span>
+                        <span class="badge badge-new">Новое</span>
+                    {% elif app.status == 'pending_payment' %}
+                        <span class="badge badge-pending">Ожидает оплаты</span>
                     {% elif app.status == 'accepted' %}
-                        <span class="status status-accepted">Принято</span>
+                        <span class="badge badge-accepted">Зачислен</span>
                     {% elif app.status == 'recalled' %}
-                        <span class="status" style="background: #e2e3e5; color: #383d41;">Отозвано</span>
+                        <span class="badge badge-recalled">Отозвано</span>
                     {% else %}
-                        <span class="status status-rejected">Отклонено</span>
+                        <span class="badge badge-rejected">Отклонено</span>
                     {% endif %}
                 </td>
-                <td>
-                    <button type="button" class="btn btn-primary" style="background: #3498db; font-size: 12px; padding: 6px 10px;" 
-                            data-id="{{ app.id }}"
-                            data-name="{{ app.listener_name }}"
-                            data-email="{{ app.listener.email }}"
-                            data-program="{{ app.program_name }}"
-                            data-status="{{ app.status }}"
-                            data-comment="{{ app.comment or 'Нет' }}"
-                            onclick="openDetails(this)">
-                        Детали
-                    </button>
+                <td style="text-align:right;">
+                    <a href="/admin/detail/{{ app.id }}" class="btn btn-grad btn-sm">Детали →</a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">
+                    <div class="empty-state"><span class="big">📭</span>В этой категории нет заявлений.</div>
                 </td>
             </tr>
             {% endfor %}
@@ -99,7 +167,8 @@
     </table>
 </div>
 
-<div class="modal-overlay" id="applyModal">
+<!-- Модалка быстрого создания -->
+<div class="modal-overlay" id="applyModal" onclick="if(event.target===this)closeModal()">
     <div class="modal">
         <h2>Быстрое создание заявления</h2>
         <form action="/apply" method="POST">
@@ -114,95 +183,52 @@
                     {% endfor %}
                 </select>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Сохранить</button>
-                <button type="button" class="btn" style="flex: 1; background: #95a5a6;" onclick="closeModal()">Отмена</button>
+            <div style="display:flex; gap:12px; margin-top:22px;">
+                <button type="submit" class="btn btn-grad" style="flex:1;">Сохранить</button>
+                <button type="button" class="btn btn-ghost" style="flex:1;" onclick="closeModal()">Отмена</button>
             </div>
         </form>
-    </div>
-</div>
-
-<div class="modal-overlay" id="detailsModal">
-    <div class="modal">
-        <h2>Заявление #<span id="det-id"></span></h2>
-        
-        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #3498db;">
-            <p style="margin-bottom: 10px;"><strong>Слушатель:</strong> <span id="det-name"></span></p>
-            <p style="margin-bottom: 10px;"><strong>Email:</strong> <span id="det-email"></span></p>
-            <p style="margin-bottom: 10px;"><strong>Программа:</strong> <span id="det-program"></span></p>
-            <p style="margin-bottom: 0;"><strong>Комментарий:</strong> <span id="det-comment" style="color: #7f8c8d; font-style: italic;"></span></p>
-        </div>
-        <div style="display: flex; gap: 10px; margin-top: 20px;">
-            <form action="" method="POST" id="det-form-accept" style="flex: 1;">
-                <input type="hidden" name="new_status" value="accepted">
-                <button type="submit" class="btn btn-accept" style="width: 100%;">Принять</button>
-            </form>
-            <form action="" method="POST" id="det-form-reject" style="flex: 1;">
-                <input type="hidden" name="new_status" value="rejected">
-                <button type="submit" class="btn btn-reject" style="width: 100%;">Отклонить</button>
-            </form>
-        </div>
-            <form action="" method="POST" id="det-form-recall" style="margin-top: 10px;">
-            <input type="hidden" name="new_status" value="recalled">
-            <button type="submit" class="btn" style="width: 100%; background: #95a5a6;" id="btn-recall">Отозвать заявление</button>
-        </form>
-
-        <button type="button" class="btn" style="width: 100%; margin-top: 10px; background: #bdc3c7; color: #333;" onclick="closeDetails()">Закрыть</button>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+    // --- Логика модального окна ---
     function openModal() { document.getElementById('applyModal').style.display = 'flex'; }
     function closeModal() { document.getElementById('applyModal').style.display = 'none'; }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeModal();
+    });
 
-    function openDetails(button) {
-        const id = button.getAttribute('data-id');
-        const name = button.getAttribute('data-name');
-        const email = button.getAttribute('data-email');
-        const program = button.getAttribute('data-program');
-        const status = button.getAttribute('data-status');
-        const comment = button.getAttribute('data-comment');
-
-        document.getElementById('det-id').innerText = id;
-        document.getElementById('det-name').innerText = name;
-        document.getElementById('det-email').innerText = email;
-        document.getElementById('det-program').innerText = program;
-        document.getElementById('det-comment').innerText = comment;
-        
-        document.getElementById('det-form-accept').action = '/admin/update-status/' + id;
-        document.getElementById('det-form-reject').action = '/admin/update-status/' + id;
-        document.getElementById('det-form-recall').action = '/admin/update-status/' + id;
-
-        if (status === 'recalled' || status === 'rejected') {
-            document.getElementById('btn-recall').style.display = 'none';
-        } else {
-            document.getElementById('btn-recall').style.display = 'block';
-        }
-
-        document.getElementById('detailsModal').style.display = 'flex';
-    }
-    function closeDetails() { document.getElementById('detailsModal').style.display = 'none'; }
-
-    function applyFilters() {
-        const programFilter = document.getElementById('filterProgram').value;
-        const statusFilter = document.getElementById('filterStatus').value;
+    // --- Логика мгновенной фильтрации ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const tabs = document.querySelectorAll('.tab-btn');
         const rows = document.querySelectorAll('#applicationsTableBody tr');
 
-        rows.forEach(row => {
-            const rowProgram = row.getAttribute('data-program');
-            const rowStatus = row.getAttribute('data-status');
-            
-            const matchProgram = (programFilter === 'all' || rowProgram === programFilter);
-            const matchStatus = (statusFilter === 'all' || rowStatus === statusFilter);
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault(); // Отменяем стандартное поведение ссылки
+                
+                // Снимаем активный класс со всех вкладок
+                tabs.forEach(t => t.classList.remove('active'));
+                // Добавляем активный класс на текущую
+                tab.classList.add('active');
 
-            if (matchProgram && matchStatus) {
-                row.style.display = ''; 
-            } else {
-                row.style.display = 'none';
-            }
+                const filter = tab.getAttribute('data-filter');
+
+                rows.forEach(row => {
+                    const status = row.getAttribute('data-status');
+                    
+                    // Если выбрано "Все" или статус строки совпадает с фильтром
+                    if (filter === 'all' || status === filter) {
+                        row.style.display = ''; // Показываем
+                    } else {
+                        row.style.display = 'none'; // Скрываем
+                    }
+                });
+            });
         });
-    }
+    });
 </script>
 {% endblock %}

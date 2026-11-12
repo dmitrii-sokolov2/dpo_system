@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% block title %}Заявление #{{ app.id }}{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --bg: #f7f5f1; --ink: #182b3a; --ink-soft: #5c6b7a;
+        --blue: #1d4ed8; --teal: #0d9488; --orange: #c2611a; --red: #c02626;
+        --grad: linear-gradient(120deg, #1d4ed8, #0d9488);
+        --card: #fff; --line: #e6e1d8;
+        --serif: Georgia, 'Times New Roman', serif;
+        --sans: -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        --shadow: 0 10px 40px rgba(24,43,58,.10);
+        --shadow-lg: 0 24px 70px rgba(24,43,58,.16);
+        --radius: 18px;
+    }
+
+    .content-area { padding: 40px 4vw 80px !important; background: var(--bg); font-family: var(--sans); color: var(--ink); }
+
+    .back-link {
+        display: inline-flex; align-items: center; gap: 8px;
+        color: var(--ink-soft); text-decoration: none; font-weight: 700; font-size: 14px;
+        margin-bottom: 22px; transition: color .3s;
+    }
+    .back-link:hover { color: var(--blue); }
+
+    .page-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 30px; }
+    .page-head h1 { font-family: var(--serif); font-size: 32px; margin: 0; }
+    .page-head h1 span { background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+    .badge {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 7px 16px; border-radius: 100px; font-size: 13px; font-weight: 700;
+    }
+    .badge::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .badge-new       { background: rgba(29,78,216,.10);  color: var(--blue); }
+    .badge-pending   { background: rgba(230,126,34,.12); color: var(--orange); }
+    .badge-accepted  { background: rgba(13,148,136,.12); color: var(--teal); }
+    .badge-rejected  { background: rgba(220,38,38,.10);  color: var(--red); }
+    .badge-recalled  { background: rgba(92,107,122,.12); color: var(--ink-soft); }
+
+    .layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 26px; align-items: start; }
+
+    .card {
+        background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+        box-shadow: var(--shadow); padding: 32px;
+    }
+    .card h2 { font-family: var(--serif); font-size: 22px; margin: 0 0 20px; }
+
+    .info-row {
+        display: flex; justify-content: space-between; gap: 20px;
+        padding: 14px 0; border-bottom: 1px solid var(--line); font-size: 15px;
+    }
+    .info-row:last-child { border-bottom: none; }
+    .info-row .k { color: var(--ink-soft); font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; padding-top: 2px; }
+    .info-row .v { text-align: right; font-weight: 600; }
+    .info-row .v.muted { color: var(--ink-soft); font-weight: 400; font-style: italic; }
+
+    /* Кнопки действий */
+    .btn {
+        display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        width: 100%; padding: 18px 22px; border: none; border-radius: 14px; cursor: pointer;
+        font-family: var(--sans); font-weight: 700; font-size: 15px; color: #fff; text-align: left;
+        transition: transform .2s, box-shadow .3s, filter .3s;
+    }
+    .btn:hover { transform: translateY(-3px); filter: brightness(1.06); }
+    .btn .arrow { font-size: 18px; }
+    .btn-orange { background: linear-gradient(120deg, #e67e22, #d35400); box-shadow: 0 10px 24px rgba(230,126,34,.30); }
+    .btn-green  { background: linear-gradient(120deg, #0d9488, #0f766e); box-shadow: 0 10px 24px rgba(13,148,136,.30); }
+    .btn-red    { background: linear-gradient(120deg, #dc2626, #b91c1c); box-shadow: 0 10px 24px rgba(220,38,38,.25); }
+    .btn.disabled { opacity: .45; cursor: not-allowed; transform: none !important; box-shadow: none; }
+
+    .action-form + .action-form { margin-top: 14px; }
+    .hint { font-size: 13px; color: var(--ink-soft); margin: 6px 2px 18px; line-height: 1.5; }
+
+    @media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+</style>
+
+<a href="/admin" class="back-link">← Назад к списку заявлений</a>
+
+<div class="page-head">
+    <h1>Заявление <span>#{{ app.id }}</span></h1>
+    {% if app.status == 'new' %}
+        <span class="badge badge-new">Новое</span>
+    {% elif app.status == 'pending_payment' %}
+        <span class="badge badge-pending">Ожидает оплаты</span>
+    {% elif app.status == 'accepted' %}
+        <span class="badge badge-accepted">Зачислен</span>
+    {% elif app.status == 'recalled' %}
+        <span class="badge badge-recalled">Отозвано слушателем</span>
+    {% else %}
+        <span class="badge badge-rejected">Отклонено</span>
+    {% endif %}
+</div>
+
+<div class="layout">
+
+    <!-- Информация -->
+    <div class="card">
+        <h2>Данные слушателя</h2>
+        <div class="info-row"><span class="k">Слушатель</span><span class="v">{{ app.listener_name }}</span></div>
+        <div class="info-row"><span class="k">Email</span><span class="v">{{ app.listener.email }}</span></div>
+        <div class="info-row"><span class="k">Программа</span><span class="v">{{ app.program_name }}</span></div>
+        <div class="info-row"><span class="k">Комментарий</span><span class="v muted">{{ app.comment or 'Не указан' }}</span></div>
+    </div>
+
+    <div class="card">
+        <h2>Управление статусом</h2>
+
+        {% if app.status in ['accepted', 'rejected', 'recalled'] %}
+            <p class="hint">Заявление находится в финальном статусе, изменения недоступны.</p>
+        {% endif %}
+
+        <form class="action-form" action="/admin/update-status/{{ app.id }}" method="POST">
+            <input type="hidden" name="new_status" value="pending_payment">
+            <button type="submit" class="btn btn-orange {% if app.status != 'new' %}disabled{% endif %}"
+                    {% if app.status != 'new' %}disabled{% endif %}>
+                <span>Принять и выставить счёт<br><small style="font-weight:400; opacity:.85;">заявление переходит в «Ожидание оплаты»</small></span>
+                <span class="arrow">→</span>
+            </button>
+        </form>
+
+        <form class="action-form" action="/admin/update-status/{{ app.id }}" method="POST">
+            <input type="hidden" name="new_status" value="accepted">
+            <button type="submit" class="btn btn-green {% if app.status != 'pending_payment' %}disabled{% endif %}"
+                    {% if app.status != 'pending_payment' %}disabled{% endif %}>
+                <span>Подтвердить оплату и зачислить</span>
+                <span class="arrow">→</span>
+            </button>
+        </form>
+
+        <form class="action-form" action="/admin/update-status/{{ app.id }}" method="POST">
+            <input type="hidden" name="new_status" value="rejected">
+            <button type="submit" class="btn btn-red {% if app.status in ['accepted', 'rejected', 'recalled'] %}disabled{% endif %}"
+                    {% if app.status in ['accepted', 'rejected', 'recalled'] %}disabled{% endif %}
+                    onclick="return confirm('Отклонить заявление #{{ app.id }}?')">
+                <span>Отклонить заявление</span>
+                <span class="arrow">✕</span>
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

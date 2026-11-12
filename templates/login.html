@@ -1,81 +1,169 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <title>Вход в систему - Отдел ДПО</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Arial, sans-serif; }
-        body { display: flex; height: 100vh; background: #f4f7f6; }
-        
-        /* Левая панель (синяя) */
-        .login-left { flex: 1; background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); color: white; display: flex; flex-direction: column; justify-content: center; padding: 50px; position: relative; overflow: hidden; }
-        .login-left h1 { font-size: 36px; margin-bottom: 20px; z-index: 1; }
-        .login-left p { font-size: 16px; opacity: 0.8; line-height: 1.6; max-width: 400px; z-index: 1; }
-        
-        /* Декоративные круги на фоне */
-        .circle { position: absolute; border-radius: 50%; background: rgba(255, 255, 255, 0.05); }
-        .c1 { width: 300px; height: 300px; top: -50px; right: -50px; }
-        .c2 { width: 500px; height: 500px; bottom: -100px; left: -100px; }
+{% extends "base.html" %}
+{% block title %}Вход для сотрудников{% endblock %}
 
-        /* Правая панель (форма) */
-        .login-right { flex: 1; display: flex; justify-content: center; align-items: center; background: white; }
-        .form-container { width: 100%; max-width: 400px; padding: 40px; }
-        
-        .form-header { margin-bottom: 40px; text-align: center; }
-        .form-header h2 { color: #2c3e50; font-size: 28px; margin-bottom: 10px; }
-        .form-header p { color: #7f8c8d; font-size: 14px; }
+{% block content %}
+<style>
+    /* Убираем отступы контентной области для этой страницы */
+    .content-area { padding: 0 !important; height: calc(100vh - 72px); }
+    
+    .login-split {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        background: #fff;
+    }
 
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; font-size: 13px; font-weight: 600; color: #34495e; margin-bottom: 8px; }
-        .input-group input { width: 100%; padding: 14px 15px; border: 2px solid #e0e6ed; border-radius: 6px; font-size: 15px; transition: 0.3s; background: #f8fafc; }
-        .input-group input:focus { border-color: #3498db; outline: none; background: white; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+    /* Левая часть (Логотип и приветствие) */
+    .login-left {
+        flex: 1.2;
+        background: linear-gradient(135deg, #182b3a 0%, #1d4ed8 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        color: white;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Декоративные круги на фоне */
+    .login-left::before {
+        content: ''; position: absolute; width: 400px; height: 400px;
+        background: rgba(255,255,255,0.05); border-radius: 50%; top: -100px; left: -100px;
+    }
+    .login-left::after {
+        content: ''; position: absolute; width: 600px; height: 600px;
+        background: rgba(13, 148, 136, 0.15); border-radius: 50%; bottom: -200px; right: -100px;
+    }
 
-        .btn-login { width: 100%; padding: 14px; background: #3498db; color: white; border: none; border-radius: 6px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
-        .btn-login:hover { background: #2980b9; }
+    .login-left img {
+        height: 120px;
+        margin-bottom: 30px;
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        z-index: 1;
+    }
 
-        .error-msg { background: #fadbd8; color: #c0392b; padding: 10px; border-radius: 4px; font-size: 13px; margin-bottom: 20px; text-align: center; }
-        
-        .back-link { display: block; text-align: center; margin-top: 30px; color: #7f8c8d; font-size: 14px; text-decoration: none; }
-        .back-link:hover { color: #3498db; }
-    </style>
-</head>
-<body>
+    .login-left h2 {
+        font-family: var(--serif);
+        font-size: 32px;
+        margin-bottom: 15px;
+        z-index: 1;
+    }
 
-    <!-- Левая часть -->
+    .login-left p {
+        font-size: 16px;
+        opacity: 0.8;
+        max-width: 400px;
+        line-height: 1.6;
+        z-index: 1;
+    }
+
+    /* Правая часть (Форма) */
+    .login-right {
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        background: #f7f5f1;
+    }
+
+    .login-form-container {
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .login-form-container h1 {
+        font-family: var(--serif);
+        font-size: 28px;
+        color: var(--ink);
+        margin-bottom: 8px;
+    }
+    
+    .login-form-container .subtitle {
+        color: var(--ink-soft);
+        font-size: 15px;
+        margin-bottom: 30px;
+    }
+
+    .login-form-container .form-group {
+        margin-bottom: 20px;
+    }
+
+    .login-form-container .form-group label {
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--ink-soft);
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .login-form-container .form-group input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1.5px solid var(--line);
+        border-radius: 10px;
+        font-size: 15px;
+        background: #fff;
+        transition: all 0.3s;
+    }
+
+    .login-form-container .form-group input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 4px rgba(29,78,216,0.1);
+    }
+
+    @media (max-width: 900px) {
+        .login-split { flex-direction: column; }
+        .login-left { padding: 30px; flex: none; height: 300px; }
+        .login-right { padding: 30px; flex: 1; }
+    }
+</style>
+
+<div class="login-split">
+    <!-- Левая панель -->
     <div class="login-left">
-        <div class="circle c1"></div>
-        <div class="circle c2"></div>
-        <h1>Отдел ДПО</h1>
-        <p>Единая информационная система управления дополнительным профессиональным образованием. Авторизуйтесь для доступа к панели сотрудника.</p>
+        <img src="/static/images/logo.png" alt="Логотип университета">
+        <h2>Портал отдела ДПО</h2>
+        <p>Единая информационная система управления дополнительным профессиональным образованием.</p>
     </div>
 
-    <!-- Правая часть -->
+    <!-- Правая панель (Форма) -->
     <div class="login-right">
-        <div class="form-container">
-            <div class="form-header">
-                <h2>Вход в систему</h2>
-                <p>Введите корпоративные данные</p>
-            </div>
-
+        <div class="login-form-container">
+            <h1>Вход в систему</h1>
+            <p class="subtitle">Введите корпоративные данные для доступа к панели сотрудника.</p>
+            
             {% if error %}
-            <div class="error-msg">{{ error }}</div>
+            <div style="background: #fee2e2; color: #b91c1c; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 14px; text-align: center; font-weight: 600;">
+                {{ error }}
+            </div>
             {% endif %}
 
             <form action="/login" method="POST">
-                <div class="input-group">
+                <div class="form-group">
                     <label>Логин сотрудника</label>
                     <input type="text" name="username" required placeholder="admin">
                 </div>
-                <div class="input-group">
+                <div class="form-group">
                     <label>Пароль</label>
                     <input type="password" name="password" required placeholder="••••••">
                 </div>
-                <button type="submit" class="btn-login">Войти в панель</button>
+                <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px; padding: 16px;">Войти в панель</button>
             </form>
-
-            <a href="/" class="back-link">← Вернуться на сайт для слушателей</a>
+            
+            <div style="text-align: center; margin-top: 30px;">
+                <a href="/" style="color: var(--ink-soft); text-decoration: none; font-size: 14px; font-weight: 600; transition: 0.3s;" onmouseover="this.style.color='var(--blue)'" onmouseout="this.style.color='var(--ink-soft)'">← Вернуться на главный сайт</a>
+            </div>
         </div>
     </div>
-
-</body>
-</html>
+</div>
+{% endblock %}
